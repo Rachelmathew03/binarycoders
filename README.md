@@ -4,7 +4,7 @@
 This is a simple Pomodoro Timer web application designed to help users manage their tasks efficiently by following the Pomodoro Technique. 
 
 For output we have shortened the time 25 minutes to 2 minutes and break time 5 minutes to 1 minute in screenshot.
-[Pomodoro Timer Screenshort page 1]()
+
 
 ## Features
 
@@ -34,7 +34,7 @@ To use the Pomodoro Timer web application, simply open the index.html file in yo
 4. *Timer Controls*:
    - Use the "Start/Pause" button to control the timer.
    - Click "Reset" to reset the timer.
-   [Pomodoro Timer Screenshot](https://imgur.com/a/4WBJEQK).
+     
 
 
 ## Credits
