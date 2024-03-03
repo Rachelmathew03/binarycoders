@@ -166,7 +166,7 @@
     <div class="container hidden" id="timer-container">
         <h1>Pomodoro Timer</h1>
         <div class="timer" id="timer">
-            <span id="minutes">2</span>:
+            <span id="minutes">25</span>:
             <span id="seconds">00</span>
         </div>
         <div class="progress-container">
@@ -198,7 +198,7 @@
         const taskInput = document.getElementById('taskInput');
         let tasks = [];
         let currentTaskIndex = 0;
-        let totalSeconds = 2 * 60; // Initial duration for each task
+        let totalSeconds = 25 * 60; // Initial duration for each task
         let isBreakTime = false;
         let isRunning = false;
         let intervalId;
@@ -232,10 +232,10 @@
             tasks = [];
             currentTaskIndex = 0;
             taskInput.value = '';
-            totalSeconds = 2 * 60;
+            totalSeconds = 25 * 60;
             isBreakTime = false;
             isRunning = false;
-            minutesElement.textContent = '2';
+            minutesElement.textContent = '25';
             secondsElement.textContent = '00';
         }
 
@@ -244,7 +244,7 @@
                 if (totalSeconds === 0) {
                     clearInterval(intervalId);
                     isBreakTime = false;
-                    totalSeconds = 2 * 60;
+                    totalSeconds = 25 * 60;
                     currentTaskIndex++;
                     if (currentTaskIndex < tasks.length) {
                         startTimer();
@@ -258,7 +258,7 @@
                 if (totalSeconds === 0) {
                     clearInterval(intervalId);
                     isBreakTime = true;
-                    totalSeconds = 1 * 60;
+                    totalSeconds = 5 * 60;
                     startTimer();
                     return;
                 }
@@ -270,7 +270,7 @@
             totalSeconds--;
 
             // Update progress bar width
-            const totalTimeInSeconds = isBreakTime ? 1 * 60 : 2 * 60;
+            const totalTimeInSeconds = isBreakTime ? 5 * 60 : 25 * 60;
             const remainingTimeInSeconds = totalSeconds;
             const progressPercentage = ((totalTimeInSeconds - remainingTimeInSeconds) / totalTimeInSeconds) * 100;
             const progressBar = document.getElementById('progress-bar');
@@ -300,9 +300,9 @@
             isRunning = false;
             clearInterval(intervalId);
             if (isBreakTime) {
-                totalSeconds = 1 * 60;
+                totalSeconds = 5 * 60;
             } else {
-                totalSeconds = 2 * 60;
+                totalSeconds = 25 * 60;
             }
             minutesElement.textContent = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             secondsElement.textContent = (totalSeconds % 60).toString().padStart(2, '0');
