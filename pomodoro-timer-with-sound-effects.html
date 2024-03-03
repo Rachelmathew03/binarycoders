@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://img.pikbest.com/ai/illus_our/20230427/eda39c5457c74558564d2001aaf9c426.jpg!w700wp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #c962a7;
+            color: #f8f4f7;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #c962a7;
+        }
+
+        .timer-container {
+            display: none;
+        }
+
+        .timer {
+            font-size: 80px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #timer span {
+            display: inline-block;
+            min-width: 60px;
+        }
+
+        #current-task-container {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        #current-task {
+            font-size: 24px;
+            color: #555;
+        }
+
+        #tasks-list-container {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        #tasks-list {
+            padding-left: 20px;
+            list-style: none;
+        }
+
+        #tasks-list li {
+            margin-bottom: 10px;
+        }
+
+        #controls {
+            margin-top: 20px;
+        }
+
+        .control-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #c962a7;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease-in-out;
+            margin-right: 10px;
+        }
+
+        .control-button:hover {
+            background-color: #c962a7;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .visible {
+            display: block;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+            width: calc(100% - 70px);
+            font-size: 16px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .progress-container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: #ddd;
+            border-radius: 10px;
+            height: 20px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #4caf50;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="welcome-container">
+        <h1>Welcome to Pomodoro Timer</h1>
+        <button onclick="goToTodoList()">Next</button>
+    </div>
+
+    <div class="container hidden" id="todo-list-container">
+        <h1>To Do List</h1>
+        <div class="input-container">
+            <input type="text" id="taskInput" placeholder="Enter a task">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <ul id="tasks-list"></ul>
+        <button onclick="goToTimer()">Next</button>
+        <button onclick="goBackFromTodoList()">Back</button>
+    </div>
+
+    <div class="container hidden" id="timer-container">
+        <h1>Pomodoro Timer</h1>
+        <div class="timer" id="timer">
+            <span id="minutes">25</span>:
+            <span id="seconds">00</span>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div id="current-task-container">
+            <h2>Current Task:</h2>
+            <p id="current-task"></p>
+        </div>
+        <div id="tasks-list-container" class="hidden">
+            <h2>Tasks:</h2>
+            <ul id="tasks-list"></ul>
+        </div>
+        <div id="controls">
+            <button class="control-button" id="start-pause" onclick="startPauseTimer()">Start</button>
+            <button class="control-button" id="reset" onclick="resetTimer()">Reset</button>
+        </div>
+        <button class="control-button" id="back" onclick="goBackFromTimer()">Back</button>
+    </div>
+
+    <script>
+        const welcomeContainer = document.getElementById('welcome-container');
+        const todoListContainer = document.getElementById('todo-list-container');
+        const timerContainer = document.getElementById('timer-container');
+        const minutesElement = document.getElementById('minutes');
+        const secondsElement = document.getElementById('seconds');
+        const tasksListContainer = document.getElementById('tasks-list-container');
+        const tasksList = document.getElementById('tasks-list');
+        const currentTaskElement = document.getElementById('current-task');
+        const taskInput = document.getElementById('taskInput');
+        let tasks = [];
+        let currentTaskIndex = 0;
+        let totalSeconds = 25 * 60; // Initial duration for each task
+        let isBreakTime = false;
+        let isRunning = false;
+        let intervalId;
+
+        function goToTodoList() {
+            welcomeContainer.classList.add('hidden');
+            todoListContainer.classList.remove('hidden');
+        }
+
+        function goToTimer() {
+            if (tasks.length === 0) {
+                alert('Please add tasks before proceeding.');
+                return;
+            }
+            todoListContainer.classList.add('hidden');
+            timerContainer.classList.remove('hidden');
+            displayTasksInTimer();
+            startTimer();
+        }
+
+        function goBackFromTodoList() {
+            todoListContainer.classList.add('hidden');
+            welcomeContainer.classList.remove('hidden');
+            taskInput.value = '';
+        }
+
+        function goBackFromTimer() {
+            clearInterval(intervalId);
+            timerContainer.classList.add('hidden');
+            todoListContainer.classList.remove('hidden');
+            tasks = [];
+            currentTaskIndex = 0;
+            taskInput.value = '';
+            totalSeconds = 25 * 60;
+            isBreakTime = false;
+            isRunning = false;
+            minutesElement.textContent = '25';
+            secondsElement.textContent = '00';
+        }
+
+        function updateTimer() {
+            if (isBreakTime) {
+                if (totalSeconds === 0) {
+                    clearInterval(intervalId);
+                    isBreakTime = false;
+                    totalSeconds = 25 * 60;
+                    currentTaskIndex++;
+                    if (currentTaskIndex < tasks.length) {
+                        startTimer();
+                    } else {
+                        alert('All tasks completed!');
+                        resetTimer();
+                    }
+                    return;
+                }
+            } else {
+                if (totalSeconds === 0) {
+                    clearInterval(intervalId);
+                    isBreakTime = true;
+                    totalSeconds = 5 * 60;
+                    alert('Task Completed!'); // Alert after each task is completed
+                    startTimer();
+                    return;
+                }
+            }
+
+            const remainingSeconds = totalSeconds % 60;
+            minutesElement.textContent = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            secondsElement.textContent = remainingSeconds.toString().padStart(2, '0');
+            totalSeconds--;
+            
+            // Update progress bar width
+            const totalTimeInSeconds = isBreakTime ? 5 * 60 : 25 * 60;
+            const remainingTimeInSeconds = totalSeconds;
+            const progressPercentage = ((totalTimeInSeconds - remainingTimeInSeconds) / totalTimeInSeconds) * 100;
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = progressPercentage + '%';
+        }
+
+        function startTimer() {
+            isRunning = true;
+            intervalId = setInterval(updateTimer, 1000);
+            document.getElementById('start-pause').textContent = 'Pause';
+            if (tasks.length > 0) {
+                currentTaskElement.textContent = tasks[currentTaskIndex].text;
+            }
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(intervalId);
+            document.getElementById('start-pause').textContent = 'Start';
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(intervalId);
+            if (isBreakTime) {
+                totalSeconds = 5 * 60;
+            } else {
+                totalSeconds = 25 * 60;
+            }
+            minutesElement.textContent = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            secondsElement.textContent = (totalSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('start-pause').textContent = 'Start';
+        }
+
+        function startPauseTimer() {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function addTask() {
+            const taskText = taskInput.value.trim();
+            if (taskText !== '') {
+                tasks.push({ text: taskText, completed: false });
+                taskInput.value = '';
+                displayTasksInTodoList();
+            }
+        }
+
+        function displayTasksInTodoList() {
+            const tasksList = document.getElementById('tasks-list');
+            tasksList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.textContent = task.text;
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteTask(index);
+                li.appendChild(deleteButton);
+                tasksList.appendChild(li);
+            });
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            displayTasksInTodoList();
+        }
+
+        function displayTasksInTimer() {
+            tasksList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'task-item';
+                li.innerHTML = `
+                    <span class="task-text">${task.text}</span>
+                    <span class="task-actions">
+                        <button onclick="editTask(${index})">Edit</button>
+                        <button onclick="deleteTaskInTimer(${index})">Delete</button>
+                    </span>
+                `;
+                tasksList.appendChild(li);
+            });
+            tasksListContainer.classList.remove('hidden');
+        }
+
+        function deleteTaskInTimer(index) {
+            tasks.splice(index, 1);
+            displayTasksInTimer();
+        }
+
+        function editTask(index) {
+            const newText = prompt('Edit task:', tasks[index].text);
+            if (newText !== null) {
+                tasks[index].text = newText.trim();
+                displayTasksInTimer();
+            }
+        }
+    </script>
+</body>
+</html>
